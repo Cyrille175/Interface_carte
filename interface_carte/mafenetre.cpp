@@ -25,22 +25,16 @@ MaFenetre::~MaFenetre()
 
 
 ReaderName MonLecteur;
+
+
 void MaFenetre::on_Connect_clicked()
 {
-    int16_t status = MI_OK;
-    MonLecteur.Type = ReaderCDC;
-    MonLecteur.device = 0;
-    status = OpenCOM(&MonLecteur);
+    connect();
+}
 
-    LEDBuzzer(&MonLecteur, LED_GREEN_ON+LED_YELLOW_ON+LED_RED_ON+LED_GREEN_ON);
-    DELAYS_MS(10);
-    LEDBuzzer(&MonLecteur, LED_GREEN_ON+LED_YELLOW_ON);
-    qDebug() << "OpenCOM" << status;
-
-    Version(&MonLecteur);
-    ui->Affichage->setText(MonLecteur.version);
-    ui->Affichage->update();
-    LEDBuzzer(&MonLecteur, LED_RED_ON+LED_GREEN_OFF);
+void MaFenetre::on_disconnect_clicked()
+{
+    disconnect();
 }
 
 void MaFenetre::on_select_clicked()
@@ -48,18 +42,106 @@ void MaFenetre::on_select_clicked()
     selectionner_carte();
 }
 
+void MaFenetre::on_Quitter_clicked()
+{
+    quitter();
+}
+
+void MaFenetre::on_update_clicked()
+{
+    update ();
+}
+
+
+
+
+
+
+
+void MaFenetre::connect()
+{
+    LIB_VERSION Versioni;
+    BOOL RFOnOff = TRUE;                   /**< [In] Activation ou desactivation . */
+    uint8_t Delay = 0;
+    int16_t status = GetLibraryExtension(&Versioni);
+    MonLecteur.Type = ReaderCDC;
+    MonLecteur.device = 0;
+
+    if (status != MI_OK)
+    {
+        qDebug() << "Erreur sur GetLibraryExtension";
+        return;
+    }
+    status = OpenCOM(&MonLecteur);
+
+    if (status != MI_OK)
+    {
+        qDebug() << "Erreur sur OpenCOM";
+        return;
+    }
+
+    status = Version(&MonLecteur);
+
+    if (status != MI_OK)
+    {
+        qDebug() << "Erreur sur Version";
+        return;
+    }
+
+    status = RF_Power_Control(&MonLecteur,RFOnOff,Delay);
+    LEDBuzzer(&MonLecteur, LED_GREEN_ON+LED_YELLOW_ON+LED_RED_ON+LED_GREEN_ON);
+    DELAYS_MS(10);
+    LEDBuzzer(&MonLecteur, LED_GREEN_ON+LED_YELLOW_ON);
+    qDebug() << "OpenCOM" << status;
+
+    ui->Affichage->setText(MonLecteur.version);
+    ui->Affichage->update();
+    LEDBuzzer(&MonLecteur, LED_RED_ON+LED_GREEN_OFF);
+}
+
+
+
+
+void MaFenetre::disconnect()
+{
+    int16_t status = RF_Power_Control(&MonLecteur, FALSE, 0);
+    if (status != MI_OK) {
+        ui->Affichage->setText(QString("Erreur RF OFF (status=%1)").arg(status));
+    }
+
+    LEDBuzzer(&MonLecteur, LED_OFF);
+
+    status = CloseCOM(&MonLecteur);
+    if (status != MI_OK) {
+        ui->Affichage->setText(QString("Erreur CloseCOM (status=%1)").arg(status));
+        return;
+    }
+
+
+    ui->unites->clear();
+    ui->Affichage->setText("Lecteur déconnecté.");
+}
+
+
 
 void MaFenetre::selectionner_carte()
 {
-    uint16_t status = MI_OK;
-    uint8_t atq[2];
-    uint8_t sak[1];
-    uint8_t uid[12];
-    uint16_t uid_len = 12;
-    uint32_t pvalue = 0;
+    int16_t status = MI_OK;
 
-    status = ISO14443_3_A_PollCard(&MonLecteur, atq, sak, uid, &uid_len);
-    if(status == MI_OK){
+    uint8_t atq[2] = {0};
+    uint8_t sak = 0;
+    uint8_t uid[10] = {0};
+    uint16_t uid_len = 0;
+
+
+
+    status = ISO14443_3_A_PollCard(&MonLecteur, atq, &sak, uid, &uid_len);
+    if (status != MI_OK) {
+        ui->Affichage->setText("Aucune carte detectée (PollCard échouué)");
+        qDebug() << "ISO14443_3_A_PollCard status" << status;
+        return;
+    }
+        qDebug() << "Carte detecté";
         LEDBuzzer(&MonLecteur, LED_GREEN_ON+LED_YELLOW_ON+LED_RED_ON+LED_GREEN_ON);
         DELAYS_MS(10);
         LEDBuzzer(&MonLecteur, LED_GREEN_ON+LED_YELLOW_ON);
@@ -77,7 +159,7 @@ void MaFenetre::selectionner_carte()
             }
             ui->prenom->setText(prenom);
         }else{
-            qDebug() << "Erreur: impossible de lire le prenom";
+            qDebug() << "Impossible de lire le prenom";
         }
 
         status = Mf_Classic_Read_Block(&MonLecteur, true, 10, data, true, 2 );
@@ -92,24 +174,55 @@ void MaFenetre::selectionner_carte()
             }
             ui->nom->setText(nom);
         }else{
-            qDebug() << "Erreur: impossible de lire le nom";
+            qDebug() << "Impossible de lire le nom";
         }
+
+        uint32_t pvalue = 0;
 
         status = Mf_Classic_Read_Value(&MonLecteur, TRUE, 14, &pvalue, AuthKeyA, 3);
         if(status == MI_OK){
             ui->unites->setText(QString::number(pvalue));
 
         }else{
-            qDebug() << "Erreur: impossible de lire le montant sur la carte";
+            qDebug() << "Impossible de lire la valeur des unites dans le compte";
         }
-
-
-
         LEDBuzzer(&MonLecteur, LED_GREEN_ON+LED_YELLOW_ON+LED_RED_ON+LED_GREEN_ON);
         DELAYS_MS(500);
         LEDBuzzer(&MonLecteur, LED_GREEN_ON+LED_YELLOW_ON);
+}
 
-    }
 
+
+
+
+void MaFenetre::quitter()
+{
+    int16_t status = MI_OK;
+    RF_Power_Control(&MonLecteur, FALSE, 0);
+    status = LEDBuzzer(&MonLecteur, LED_OFF);
+    status = CloseCOM(&MonLecteur);
+    qApp->quit();
+}
+
+
+void MaFenetre::update()
+{
+    uint8_t atq[2];
+    uint8_t sak[1];
+    uint8_t uid[12];
+    uint16_t uid_len = 12;
+
+    LEDBuzzer(&MonLecteur, LED_GREEN_ON+LED_YELLOW_ON+LED_RED_ON+LED_GREEN_ON);
+    DELAYS_MS(1);
+    LEDBuzzer(&MonLecteur, LED_GREEN_ON);
+
+    ISO14443_3_A_PollCard(&MonLecteur, atq, sak, uid, &uid_len);
+    char DataIn1[16];
+    strncpy(DataIn1, ui->nom->toPlainText().toUtf8().data(), 16);
+    Mf_Classic_Write_Block(&MonLecteur, TRUE, 10, (uint8_t*)DataIn1, AuthKeyB, 2 );
+
+    char DataIn[16];
+    strncpy(DataIn, ui->prenom->toPlainText().toUtf8().data(), 16);
+    Mf_Classic_Write_Block(&MonLecteur, TRUE, 9, (uint8_t*)DataIn, AuthKeyB, 2 );
 }
 

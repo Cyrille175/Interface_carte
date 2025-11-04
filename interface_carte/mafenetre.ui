@@ -17,7 +17,7 @@
    <property name="geometry">
     <rect>
      <x>0</x>
-     <y>0</y>
+     <y>10</y>
      <width>971</width>
      <height>649</height>
     </rect>
@@ -34,26 +34,6 @@
     <property name="title">
      <string>Identité</string>
     </property>
-    <widget class="QLineEdit" name="nom">
-     <property name="geometry">
-      <rect>
-       <x>100</x>
-       <y>30</y>
-       <width>201</width>
-       <height>26</height>
-      </rect>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="prenom">
-     <property name="geometry">
-      <rect>
-       <x>100</x>
-       <y>70</y>
-       <width>201</width>
-       <height>26</height>
-      </rect>
-     </property>
-    </widget>
     <widget class="QPushButton" name="update">
      <property name="geometry">
       <rect>
@@ -91,6 +71,26 @@
      </property>
      <property name="text">
       <string>Nom</string>
+     </property>
+    </widget>
+    <widget class="QTextEdit" name="nom">
+     <property name="geometry">
+      <rect>
+       <x>100</x>
+       <y>30</y>
+       <width>201</width>
+       <height>31</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QTextEdit" name="prenom">
+     <property name="geometry">
+      <rect>
+       <x>100</x>
+       <y>70</y>
+       <width>201</width>
+       <height>31</height>
+      </rect>
      </property>
     </widget>
    </widget>
