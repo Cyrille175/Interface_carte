@@ -23,6 +23,7 @@ private slots:
     void on_select_clicked();
     void on_Quitter_clicked();
     void on_update_clicked();
+    void on_payer_clicked();
 
 
 private:
@@ -32,5 +33,6 @@ private:
     void selectionner_carte();
     void quitter();
     void update();
+    void payer();
 };
 #endif // MAFENETRE_H

@@ -52,6 +52,11 @@ void MaFenetre::on_update_clicked()
     update ();
 }
 
+void MaFenetre::on_payer_clicked()
+{
+    payer();
+}
+
 
 
 
@@ -106,14 +111,14 @@ void MaFenetre::disconnect()
 {
     int16_t status = RF_Power_Control(&MonLecteur, FALSE, 0);
     if (status != MI_OK) {
-        ui->Affichage->setText(QString("Erreur RF OFF (status=%1)").arg(status));
+        qDebug() << "Erreur sur le RF_Power_Control";
     }
 
     LEDBuzzer(&MonLecteur, LED_OFF);
 
     status = CloseCOM(&MonLecteur);
     if (status != MI_OK) {
-        ui->Affichage->setText(QString("Erreur CloseCOM (status=%1)").arg(status));
+        qDebug() << "Erreur sur le CloseCOM";
         return;
     }
 
@@ -177,11 +182,11 @@ void MaFenetre::selectionner_carte()
             qDebug() << "Impossible de lire le nom";
         }
 
-        uint32_t pvalue = 0;
+        uint32_t value = 0;
 
-        status = Mf_Classic_Read_Value(&MonLecteur, TRUE, 14, &pvalue, AuthKeyA, 3);
+        status = Mf_Classic_Read_Value(&MonLecteur, TRUE, 14, &value, AuthKeyA, 3);
         if(status == MI_OK){
-            ui->unites->setText(QString::number(pvalue));
+            ui->unites->setText(QString::number(value));
 
         }else{
             qDebug() << "Impossible de lire la valeur des unites dans le compte";
@@ -190,7 +195,6 @@ void MaFenetre::selectionner_carte()
         DELAYS_MS(500);
         LEDBuzzer(&MonLecteur, LED_GREEN_ON+LED_YELLOW_ON);
 }
-
 
 
 
@@ -224,5 +228,31 @@ void MaFenetre::update()
     char DataIn[16];
     strncpy(DataIn, ui->prenom->toPlainText().toUtf8().data(), 16);
     Mf_Classic_Write_Block(&MonLecteur, TRUE, 9, (uint8_t*)DataIn, AuthKeyB, 2 );
+}
+
+
+void MaFenetre::payer(){
+
+    uint8_t atq[2];
+    uint8_t sak[1];
+    uint8_t uid[12];
+    uint16_t uid_len = 12;
+    uint32_t value = 0;
+
+    uint32_t Valeur_Decrementer = 0;
+    Valeur_Decrementer = ui->decrement->value();
+    ISO14443_3_A_PollCard(&MonLecteur, atq, sak, uid, &uid_len);
+    Mf_Classic_Decrement_Value(&MonLecteur, TRUE, 14, Valeur_Decrementer, 13, AuthKeyA, 3);
+    Mf_Classic_Restore_Value(&MonLecteur, TRUE, 13, 14, AuthKeyA, 3);
+    Mf_Classic_Read_Value(&MonLecteur, TRUE, 14, &value, AuthKeyA, 3);
+    ui->unites->setText(QString::number(value));
+
+
+
+    LEDBuzzer(&MonLecteur, LED_GREEN_ON+LED_YELLOW_ON+LED_RED_ON+LED_GREEN_ON);
+    DELAYS_MS(500);
+    LEDBuzzer(&MonLecteur, LED_GREEN_ON+LED_YELLOW_ON);
+
+
 }
 
