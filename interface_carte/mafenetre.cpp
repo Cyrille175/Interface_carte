@@ -57,6 +57,11 @@ void MaFenetre::on_payer_clicked()
     payer();
 }
 
+void MaFenetre::on_charger_clicked()
+{
+    charger();
+}
+
 
 
 
@@ -101,7 +106,7 @@ void MaFenetre::connect()
 
     ui->Affichage->setText(MonLecteur.version);
     ui->Affichage->update();
-    LEDBuzzer(&MonLecteur, LED_RED_ON+LED_GREEN_OFF);
+    LEDBuzzer(&MonLecteur, LED_GREEN_OFF);
 }
 
 
@@ -191,9 +196,9 @@ void MaFenetre::selectionner_carte()
         }else{
             qDebug() << "Impossible de lire la valeur des unites dans le compte";
         }
-        LEDBuzzer(&MonLecteur, LED_GREEN_ON+LED_YELLOW_ON+LED_RED_ON+LED_GREEN_ON);
+        LEDBuzzer(&MonLecteur, LED_GREEN_ON);
         DELAYS_MS(500);
-        LEDBuzzer(&MonLecteur, LED_GREEN_ON+LED_YELLOW_ON);
+        LEDBuzzer(&MonLecteur, LED_GREEN_OFF);
 }
 
 
@@ -249,10 +254,37 @@ void MaFenetre::payer(){
 
 
 
-    LEDBuzzer(&MonLecteur, LED_GREEN_ON+LED_YELLOW_ON+LED_RED_ON+LED_GREEN_ON);
+    LEDBuzzer(&MonLecteur, LED_GREEN_ON);
     DELAYS_MS(500);
-    LEDBuzzer(&MonLecteur, LED_GREEN_ON+LED_YELLOW_ON);
+    LEDBuzzer(&MonLecteur, LED_GREEN_OFF);
 
 
+}
+
+
+
+void MaFenetre::charger()
+{
+
+    uint8_t atq[2];
+    uint8_t sak[1];
+    uint8_t uid[12];
+    uint16_t uid_len = 12;
+    uint32_t value = 0;
+
+    uint32_t Valeur_Increment = 0;
+
+    Valeur_Increment = ui->increment->value();
+    ISO14443_3_A_PollCard(&MonLecteur, atq, sak, uid, &uid_len);
+    Mf_Classic_Increment_Value(&MonLecteur, TRUE, 14, Valeur_Increment, 13, AuthKeyB, 3);
+    Mf_Classic_Restore_Value(&MonLecteur, TRUE, 13, 14, AuthKeyB, 3);
+    Mf_Classic_Read_Value(&MonLecteur, TRUE, 14, &value, AuthKeyA, 3);
+    ui->unites->setText(QString::number(value));
+
+
+
+    LEDBuzzer(&MonLecteur, LED_GREEN_ON);
+    DELAYS_MS(500);
+    LEDBuzzer(&MonLecteur, LED_GREEN_OFF);
 }
 

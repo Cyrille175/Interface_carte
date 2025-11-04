@@ -24,6 +24,7 @@ private slots:
     void on_Quitter_clicked();
     void on_update_clicked();
     void on_payer_clicked();
+    void on_charger_clicked();
 
 
 private:
@@ -34,5 +35,6 @@ private:
     void quitter();
     void update();
     void payer();
+    void charger();
 };
 #endif // MAFENETRE_H
