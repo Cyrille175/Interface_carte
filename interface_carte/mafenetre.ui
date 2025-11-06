@@ -275,30 +275,23 @@
      </rect>
     </property>
    </widget>
-   <widget class="QPushButton" name="verify">
+   <widget class="QLabel" name="image">
     <property name="geometry">
      <rect>
-      <x>130</x>
-      <y>260</y>
-      <width>171</width>
-      <height>29</height>
+      <x>60</x>
+      <y>100</y>
+      <width>341</width>
+      <height>291</height>
      </rect>
     </property>
     <property name="text">
-     <string>verifier l'identite</string>
+     <string/>
     </property>
-   </widget>
-   <widget class="QPushButton" name="test">
-    <property name="geometry">
-     <rect>
-      <x>140</x>
-      <y>90</y>
-      <width>93</width>
-      <height>29</height>
-     </rect>
+    <property name="pixmap">
+     <pixmap resource="ressource.qrc">:/ressources/images/Cyrille.png</pixmap>
     </property>
-    <property name="text">
-     <string>test</string>
+    <property name="scaledContents">
+     <bool>true</bool>
     </property>
    </widget>
   </widget>
@@ -323,6 +316,8 @@
    </property>
   </widget>
  </widget>
- <resources/>
+ <resources>
+  <include location="ressource.qrc"/>
+ </resources>
  <connections/>
 </ui>

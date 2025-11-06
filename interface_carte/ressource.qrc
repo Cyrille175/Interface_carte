@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/ressources">
+        <file>images/Cyrille.png</file>
+    </qresource>
+</RCC>

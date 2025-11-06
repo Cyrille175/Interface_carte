@@ -27,3 +27,6 @@ unix|win32: LIBS += -L$$PWD/../projetQtcarte_deja_totalement_fonctionnel/Librair
 
 INCLUDEPATH += $$PWD/../projetQtcarte_deja_totalement_fonctionnel/Librairie+sample/LIB
 DEPENDPATH += $$PWD/../projetQtcarte_deja_totalement_fonctionnel/Librairie+sample/LIB
+
+RESOURCES += \
+    ressource.qrc
